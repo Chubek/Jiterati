@@ -1,0 +1,2 @@
+terse module ir_bitwise_or_xor
+fn mix(x: i64, y: i64) -> i64 = (^ (| x y) (& x y))

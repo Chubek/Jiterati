@@ -1,0 +1,2 @@
+terse module ir_nested_if
+fn clamp_nonnegative(x: i64) -> i64 = (if (s< x 0) 0 x)

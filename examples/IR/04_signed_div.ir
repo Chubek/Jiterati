@@ -1,0 +1,2 @@
+terse module ir_signed_div
+fn divide(x: i64, y: i64) -> i64 = (s/ x y)

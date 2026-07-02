@@ -1,0 +1,2 @@
+terse module ir_compare_select
+fn min(x: i64, y: i64) -> i64 = (if (s<= x y) x y)

@@ -1,0 +1,2 @@
+terse module ir_unsigned_rem
+fn rem(x: i64, y: i64) -> i64 = (u% x y)

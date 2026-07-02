@@ -1,0 +1,2 @@
+terse module ir_let_binding
+fn affine(x: i64) -> i64 = (let t (* x 3) (+ t 5))
