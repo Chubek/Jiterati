@@ -5,12 +5,24 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-option(JITERATI_BUILD_TESTS "Build Jiterati tests" ON)
-option(JITERATI_BUILD_EXAMPLES "Build Jiterati examples" ON)
-option(JITERATI_BUILD_LUA "Build Lua/Sol2 bindings" OFF)
+option(JITERATI_BUILD_TESTS "Build Jiterati tests" OFF)
+option(JITERATI_BUILD_EXAMPLES "Build Jiterati examples" OFF)
+option(JITERATI_BUILD_LUA "Build Lua/Sol2 bindings" ON)
 option(JITERATI_BUILD_DOCS "Enable the documentation target" ON)
 
+# ---------------------------------------------------------------------------
+# pkg-config: configure jiterati.pc
+# ---------------------------------------------------------------------------
+set(JITERATI_PC_FILE ${CMAKE_CURRENT_BINARY_DIR}/jiterati.pc)
+configure_file(
+    "${CMAKE_SOURCE_DIR}/cmake/jiterati.pc.in"
+    "${JITERATI_PC_FILE}"
+    @ONLY
+)
+
+# ---------------------------------------------------------------------------
 # Public headers
+# ---------------------------------------------------------------------------
 set(JITERATI_PUBLIC_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/Jiterati.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/Jiterati-BE.hpp
@@ -92,7 +104,30 @@ set(JITERATI_LUA_SOURCES
     Lua/JiteratiBinding.cpp
 )
 
-# Core library: backends + passes + plugins + DSLs.
+
+if(JITERATI_BUILD_DOCS)
+    add_subdirectory(docs)
+
+    # Build docs during installation
+    install(CODE "
+        message(STATUS \"Building Jiterati documentation...\")
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target docs
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        )
+    ")
+
+    # Install generated HTML documentation
+    install(
+        DIRECTORY "${CMAKE_BINARY_DIR}/docs/html"
+        DESTINATION share/doc/jiterati
+    )
+endif()
+
+
+# ---------------------------------------------------------------------------
+# Core library: backends + passes + plugins + DSLs
+# ---------------------------------------------------------------------------
 add_library(jiterati STATIC
     ${JITERATI_BACKEND_SOURCES}
     ${JITERATI_PASS_SOURCES}
@@ -106,22 +141,54 @@ target_include_directories(jiterati PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party
 )
 
-if(JITERATI_BUILD_LUA)
-    find_package(Lua REQUIRED)
-    if(LUA_VERSION_STRING VERSION_GREATER_EQUAL "5.5")
-        message(FATAL_ERROR "JITERATI_BUILD_LUA requires Lua 5.1 through 5.4 because sol2 does not support Lua ${LUA_VERSION_STRING}")
-    endif()
-    find_package(sol2 QUIET)
-    if(NOT sol2_FOUND)
-        message(STATUS "sol2 not found via find_package; using bundled header path if present")
-        target_include_directories(jiterati PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/sol2/include)
-    endif()
-    target_sources(jiterati PRIVATE ${JITERATI_LUA_SOURCES})
-    target_link_libraries(jiterati PUBLIC ${LUA_LIBRARIES})
-    target_include_directories(jiterati PUBLIC ${LUA_INCLUDE_DIR})
-    target_compile_definitions(jiterati PUBLIC JITERATI_HAS_LUA=1)
+# ---------------------------------------------------------------------------
+# Install vendored third_party components
+# ---------------------------------------------------------------------------
+
+# Base install location for third-party dependencies
+set(JITERATI_TP_INSTALL_DIR include/jiterati/third_party)
+
+# CLI11 (header-only)
+install(
+    DIRECTORY ${CMAKE_SOURCE_DIR}/third_party/CLI11/
+    DESTINATION ${JITERATI_TP_INSTALL_DIR}/CLI11
+    FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
+)
+
+# sol2 (header-only)
+install(
+    DIRECTORY ${CMAKE_SOURCE_DIR}/third_party/sol2/include/
+    DESTINATION ${JITERATI_TP_INSTALL_DIR}/sol2/include
+    FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
+)
+
+# Lua (vendored headers — if you ship your own Lua)
+# If you rely on system Lua, remove this section.
+install(
+    DIRECTORY ${CMAKE_SOURCE_DIR}/third_party/lua/
+    DESTINATION ${JITERATI_TP_INSTALL_DIR}/lua
+    FILES_MATCHING PATTERN "*.h"
+)
+
+# zstd (headers)
+install(
+    DIRECTORY ${CMAKE_SOURCE_DIR}/third_party/zstd/
+    DESTINATION ${JITERATI_TP_INSTALL_DIR}/zstd
+    FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+)
+
+# zstd library (static)
+if(EXISTS ${CMAKE_SOURCE_DIR}/third_party/zstd/libzstd.a)
+    install(
+        FILES ${CMAKE_SOURCE_DIR}/third_party/zstd/libzstd.a
+        DESTINATION lib
+    )
 endif()
 
+
+# ---------------------------------------------------------------------------
+# Examples
+# ---------------------------------------------------------------------------
 if(JITERATI_BUILD_EXAMPLES)
     add_executable(jiterati_square examples/square.cpp)
     target_link_libraries(jiterati_square PRIVATE jiterati)
@@ -141,6 +208,9 @@ endif()
 add_executable(Jiterati-CLI src/Jiterati-CLI.cpp)
 target_link_libraries(Jiterati-CLI PRIVATE jiterati)
 
+# ---------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------
 if(JITERATI_BUILD_TESTS)
     enable_testing()
 
@@ -197,11 +267,15 @@ if(JITERATI_BUILD_TESTS)
     endforeach()
 endif()
 
-if(JITERATI_BUILD_DOCS)
-    add_subdirectory(docs)
-endif()
-
+# ---------------------------------------------------------------------------
 # Install rules
+# ---------------------------------------------------------------------------
 install(FILES ${JITERATI_PUBLIC_HEADERS} DESTINATION include/jiterati)
 install(TARGETS jiterati ARCHIVE DESTINATION lib)
 install(TARGETS Jiterati-CLI RUNTIME DESTINATION bin)
+
+# Install pkg-config file
+install(
+    FILES "${JITERATI_PC_FILE}"
+    DESTINATION lib/pkgconfig
+)
