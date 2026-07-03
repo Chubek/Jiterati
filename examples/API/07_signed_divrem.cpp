@@ -3,12 +3,17 @@
 #include <iostream>
 
 int main() {
-    jiterati::Module module("api_signed_divrem");
-    auto* function = module.create_function<int(int, int)>("divrem_score");
+    jiterati::Module module("api_signed_divrem_details");
+    auto* function = module.create_function<int(int, int)>("signed_divrem_checksum");
     auto* entry = function->create_block("entry");
-    auto quotient = entry->sdiv(entry->arg(0), entry->arg(1));
-    auto remainder = entry->srem(entry->arg(0), entry->arg(1));
-    entry->ret(entry->add(entry->mul(quotient, function->const_i32(10)), remainder));
+
+    auto numerator = entry->arg(0);
+    auto denominator = entry->arg(1);
+    auto quotient = entry->sdiv(numerator, denominator);
+    auto remainder = entry->srem(numerator, denominator);
+    auto recomposed = entry->add(entry->mul(quotient, denominator), remainder);
+    entry->ret(entry->sub(recomposed, numerator));
+
     std::cout << module.to_string();
     return 0;
 }
