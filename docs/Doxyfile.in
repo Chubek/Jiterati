@@ -17,7 +17,6 @@ RECURSIVE              = YES
 
 # Recognize modern project structures
 FILE_PATTERNS          = *.h *.hpp *.c *.cpp *.m *.mm *.lua *.md *.rps *.txt
-EXTENSION_MAPPING      = md=markdown
 
 #-----------------------------------------------------------------------
 # Build behavior
@@ -52,7 +51,7 @@ PREDEFINED             = \
 # Markdown / documentation features
 #-----------------------------------------------------------------------
 
-USE_MD_FILE_AS_MAINPAGE = docs/index.md
+USE_MDFILE_AS_MAINPAGE = docs/frontpage.md
 
 MARKDOWN_SUPPORT        = YES
 ALPHABETICAL_INDEX      = YES
@@ -64,12 +63,10 @@ GENERATE_TREEVIEW       = YES
 
 HAVE_DOT                = YES
 DOT_IMAGE_FORMAT        = svg
-DOT_TRANSPARENT         = YES
 DOT_NUM_THREADS         = 4
 
 CALL_GRAPH              = YES
 CALLER_GRAPH            = YES
-CLASS_DIAGRAMS          = YES
 DIRECTORY_GRAPH         = YES
 INCLUDED_BY_GRAPH       = YES
 

@@ -9,7 +9,7 @@ Jiterati is a compact C++17 compiler and JIT experimentation toolkit with an in-
 - Pass infrastructure for analyses and transformations.
 - Backends for AMD64, AArch64, RV64, and WebAssembly.
 - Plugin and package specifications for extension distribution.
-- Optional Lua macro bridge through `include/Jiterati-Macro.hpp` and `Lua/ljiterati.cpp`.
+- Optional Lua macro bridge through `include/Jiterati-Macro.hpp` and `Lua/JiteratiBinding.cpp`.
 
 ## Architecture
 
@@ -71,6 +71,8 @@ cmake --build build --target docs
 - [CLI](manual/16-cli.md)
 - [Embedding Jiterati](manual/17-embedding-jiterati.md)
 - [Internal Design](manual/18-internal-design.md)
+- [`ljiterati` Lua Library](manual/19-ljiterati-library.md)
+- [Macros](manual/20-macros.md)
 
 ## API Documentation
 
