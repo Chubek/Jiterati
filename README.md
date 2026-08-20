@@ -79,4 +79,4 @@ The repository contains both implemented APIs and forward-looking specifications
 
 ## License
 
-No license file is currently included in the repository. Treat the project as source-available until a project license is provided.
+Jiterati is released under the MIT license. Meanwhile, Jiterati is built with the assisstance of Agentic AI, therefore, it is entirely public domain.
